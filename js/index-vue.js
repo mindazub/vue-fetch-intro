@@ -1,66 +1,105 @@
 var app = new Vue({
     el: '#app',
     data: {
-      firstName: "Jonas",
-      lastName: "Jonaitis",
-      message: 'You loaded this page on ',
-      currentTime: new Date().toLocaleString(),
-      todos: [],
-      users: [],
-      isDisabled: true
+      posts: [],
+      authors:[],
+      authorId: 0,
+      postsByAuthor:[],
     },
+
     created(){
-      fetch('https://jsonplaceholder.typicode.com/todos').then(response => response.json()).then(json=>{
-        console.log(json);
-        this.todos = json;
-      })
-      fetch('https://jsonplaceholder.typicode.com/users').then(response => response.json()).then(json=>{
-        console.log(json);
-        this.users = json;
-      })
-      
+      fetch('https://jsonplaceholder.typicode.com/posts')
+        .then(response => response.json())
+        .then(json=>{
+          console.log(json);
+          this.postsByAuthor = json;
+          this.posts = json;
+        })
+        // realiai praeiti per visus postus ir isrinkti id ir juos paduoti i selecta.
+        // aisku selectas bus vardu ir pavardziu, bet pasirodo salyga buvo tokia.
+        // computed: {
+        //   userIds() {
+        //       return [...new Set(this.posts.map(x => x.userId))];
+        //   }
+        // }
+        fetch('https://jsonplaceholder.typicode.com/users')
+        .then(response => response.json())
+        .then(json=>{
+          console.log(json);
+          this.authors = json;
+        })
       //loadButton();
     },
     computed: {
-      checkDisabled: function (){
-        if(this.users.length < 5){
-          this.isDisabled = false
-        }
+      
+    },
+    watch: {
+      authorId(id){
+        this.postsByAuthor = this.posts.filter(post => post.userId == id);
+        
+        console.log(this.postsByAuthor); 
       }
     },
     methods: {
-      printMessage : function (msg) {
-        this.message = msg;
-        console.log(msg);
-      },
-      updateMessage : function (msg){
+        none_count: function(){
+          return  "none"
+        },
+        removePost: function(index){
 
-      }
+          
+          this.posts.splice(index, 1);
+          this.postsByAuthor.splice(index, 1);
+
+
+        },
+        changeAuthor: function (){
+            
+            let selectedID = Number(document.getElementById("authorSelect").value);
+
+            // let selectedID = vm.authorSelect.number;
+            console.log("ID is -> " + selectedID);
+            console.log("------- take this ---------");
+            console.log(this);
+            console.log("---------------------------");
+            this.loadPostsByAuthor(selectedID, this);
+          // let selectas = document.getElementById("selectas");
+          // console.log(authorSelect);
+          // console.log(selectas.options[selectas.selectedIndex].value);
+          // axios.get('https://jsonplaceholder.typicode.com/users/'+ this.selected + '/comments')
+          //  .then(function (response) {
+          //    //console.log(response);
+          //    self.comments = response.data;
+          //    console.log(comments)
+          //  })
+          //  .catch(function (error) {
+          //    console.log(error);
+          //  });    
+        },
+        
+        loadPostsByAuthor: function(authorId, self) {
+          self.posts = fetch('https://jsonplaceholder.typicode.com/users/' + authorId + '/posts')
+          .then(response => response.json())
+          .then(json=>{
+            console.log(json);
+            this.postsByAuthor = json;
+            this.posts = json;
+          })
+        },
+   },
+
+      
     },
-    watch: {
-      users: function() {
-        if(this.users.length < 5){
-          this.isDisabled = false
-        }        
-      },
-      lastName: function() {
-        console.log(this.lastName);
-      }
-    }
-  })
+    
+  )
 
-
-
-
-  
-  Vue.component('user', {  
-    props: ['user'],
-    template: `<div> <span style="color:red;">{{ user.id }}</span> <span style="color:blue;">{{ user.name }}</span>  <button v-on:click="greet(user)">Present yourself!</button> <button v-on:click="remove(user)">DELETE</button></div>`,
+  Vue.component('comment', {  
+    props: ['comment'],
+    template: `<div> <span style="color:red;">{{ comment.userId }}</span> |
+                    <span style="color:blue;">{{ comment.body }}</span>
+                    <br><br>
+                    </div>`,
     data() {
-      return {
 
-        customProperty: "myCustomProperty"
-      }
     },
     created(){
       //console.log(this.customProperty)
@@ -68,9 +107,7 @@ var app = new Vue({
     },
 
     methods:{
-      greet: function(user){
-        let p = `Hi, my name is:${user.name} and my ID is:${user.id} and my Customproperty is: ${this.customProperty}`;
-        console.log(p);
+
       },
       remove : function(user){
         let target = app.users.filter(function (u) {
@@ -81,5 +118,5 @@ var app = new Vue({
         //console.log(_id);
       },
       
-    }
-  })
+  }
+)
